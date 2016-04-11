@@ -24,24 +24,19 @@ func (c *conn) resetDeadline() {
 }
 
 func (c *conn) Write(b []byte) (n int, err error) {
-	if c.Config.IdleTimeout != 0 {
-		defer func() {
-			if err == nil {
-				c.resetDeadline()
-			}
-		}()
+	n, err = c.netCon.Write(b)
+	if n > 0 && c.Config.IdleTimeout != 0 {
+		c.resetDeadline()
 	}
-	return c.netCon.Write(b)
+	return n, err
 }
+
 func (c *conn) Read(b []byte) (n int, err error) {
-	if c.Config.IdleTimeout != 0 {
-		defer func() {
-			if err == nil {
-				c.resetDeadline()
-			}
-		}()
+	n, err = c.netCon.Read(b)
+	if n > 0 && c.Config.IdleTimeout != 0 {
+		c.resetDeadline()
 	}
-	return c.netCon.Read(b)
+	return n, err
 }
 
 //A Handler handles socket comunications.
