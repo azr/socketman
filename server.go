@@ -146,9 +146,11 @@ func (s *Server) ListenAndServeFunc(addr string, handler func(io.ReadWriter)) er
 // server will stop listenning for new connections.
 // any ongoing connection will keep running.
 func (s *Server) Close() {
+	s.mu.Lock()
 	if s.cancelContext != nil {
 		s.cancelContext()
 	}
 	s.cancelContext = nil
 	s.Context = nil
+	s.mu.Unlock()
 }
