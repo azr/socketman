@@ -145,7 +145,7 @@ func TestListenAndServePanic(t *testing.T) {
 func TestListenAndServeTimeout(t *testing.T) {
 	server := &socketman.Server{
 		Config: socketman.Config{
-			IdleTimeout: time.Second,
+			IdleTimeout: 200 * time.Millisecond,
 		},
 	}
 
@@ -181,7 +181,7 @@ func TestListenAndServeTimeout(t *testing.T) {
 	err = nil
 	test(t, server, echoHandler, client, func(c io.ReadWriter) {
 		for j := 0; j < 2; j++ {
-			time.Sleep(server.Config.IdleTimeout / 2) // Read & Write should not wait more that IdleTimeout
+			time.Sleep(time.Duration(float64(server.Config.IdleTimeout) * 0.90)) // Read & Write should not wait more that IdleTimeout
 			for i := 0; i < len(in) && err == nil; {
 				w := 0
 				w, err = io.WriteString(c, in)
