@@ -43,6 +43,7 @@ func test(t *testing.T, server *socketman.Server, serverHandler func(io.ReadWrit
 		defer clientTasks.Done()
 		clientHandler(c)
 	})
+	//TODO: return any error so we can check them.
 	if err != nil {
 		t.Errorf("client.ConnectFunc failed: %s", err)
 		clientTasks.Done()
