@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+//net con embeds a net.Conn
+// it allows to bump I/O deadline
+// after each successfull read/write.
+// in client and/or server.
 type conn struct {
 	netCon net.Conn
 	Config
