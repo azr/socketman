@@ -13,14 +13,14 @@ type conn struct {
 }
 
 func (c *conn) resetDeadline() {
-	err := c.netCon.SetDeadline(time.Now().Add(c.Config.IdleDeadline))
+	err := c.netCon.SetDeadline(time.Now().Add(c.Config.IdleTimeout))
 	if err != nil {
 		log.Printf("socketman: SetDeadline failed: %s", err)
 	}
 }
 
 func (c *conn) Write(b []byte) (n int, err error) {
-	if c.Config.IdleDeadline != 0 {
+	if c.Config.IdleTimeout != 0 {
 		defer func() {
 			if err == nil {
 				c.resetDeadline()
@@ -30,7 +30,7 @@ func (c *conn) Write(b []byte) (n int, err error) {
 	return c.netCon.Write(b)
 }
 func (c *conn) Read(b []byte) (n int, err error) {
-	if c.Config.IdleDeadline != 0 {
+	if c.Config.IdleTimeout != 0 {
 		defer func() {
 			if err == nil {
 				c.resetDeadline()

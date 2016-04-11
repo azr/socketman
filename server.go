@@ -109,10 +109,10 @@ func (s *Server) Serve(l net.Listener, handler Handler) error {
 		}
 		tempDelay = 0
 
-		if s.Config.IdleDeadline != 0 {
-			e = c.SetDeadline(time.Now().Add(s.Config.IdleDeadline))
+		if s.Config.IdleTimeout != 0 {
+			e = c.SetDeadline(time.Now().Add(s.Config.IdleTimeout))
 			if e != nil {
-				log.Printf("failed to set idle timeout: %s.", e)
+				log.Printf("socketman: failed to set idle timeout: %s.", e)
 			}
 		}
 		go func() {

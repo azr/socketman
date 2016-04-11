@@ -22,5 +22,5 @@ type Config struct {
 	// the immediately following call to Read or Write.
 	//
 	// A zero value means I/O operations will not time out.
-	IdleDeadline time.Duration
+	IdleTimeout time.Duration
 }
