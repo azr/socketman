@@ -22,9 +22,9 @@ type Server struct {
 	Config
 
 	//Context represents the context of a server
-	//this context is cancelled upon Close.
+	//this context is cancelled and reset upon Close.
 	//
-	//When nil, ListenAndServe will just use context.Background()
+	//When nil, ListenAndServe will just set it with a context.Background()
 	Context context.Context
 
 	//cancelContext will be initialised on first
@@ -43,12 +43,13 @@ type Server struct {
 //ListenAndServe can be called multiple time on different addrs, one
 //Close call will close them all.
 //If configuration is changed between two ListenAndServe calls, already
-//running servers will just keep running with old config.
+//running servers will just keep running with old config. Changing
+//configuration after a ListenAndServe call might cause races.
 //
-//ListenAndServe is thread safe.
+//Otherwise ListenAndServe is thread safe.
 //
 //The syntax of laddr is "host:port", like "127.0.0.1:8080".
-//If host is omitted, as in ":8080", Listen listens on all available
+//If host is omitted, as in ":8080", ListenAndServe listens on all available
 //interfaces instead of just the interface with the given host address.
 //See net.Dial for more details about address syntax.
 func (s *Server) ListenAndServe(addr string, handler Handler) error {

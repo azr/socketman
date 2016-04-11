@@ -6,6 +6,9 @@ import (
 )
 
 //Config is a socket configuration.
+//Config is not thread safe. Make sure it's configured before
+//you start your client/server to avoid races.
+//server/client will only read on values.
 type Config struct {
 	// TLS config for secure Sockets
 	TLSConfig *tls.Config

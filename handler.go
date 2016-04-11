@@ -41,12 +41,13 @@ func (c *conn) Read(b []byte) (n int, err error) {
 }
 
 //A Handler handles socket comunications.
+//Client & Server will close socket after the handler returns.
 //
 // For a server, if ServeSocket panics, the server (the caller of ServeSocket) assumes
 // that the effect of the panic was isolated to the active socket.
 // It recovers the panic, logs a stack trace to the server error log,
 // and hangs up the connection.
-// For a client, itis up to you.
+// For a client, it's up to you.
 type Handler interface {
 	ServeSocket(io.ReadWriter)
 }

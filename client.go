@@ -17,7 +17,7 @@ type Client struct {
 //connection will be closed after the handler returns
 //
 //The syntax of addr is "host:port", like "127.0.0.1:8080".
-//If host is omitted, as in ":8080".
+//If host can be omitted, as in ":8080".
 //See net.Dial and tls.Dial for more details about address syntax.
 func (c *Client) Connect(addr string, handler Handler) error {
 
