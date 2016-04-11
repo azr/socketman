@@ -39,10 +39,14 @@ func test(t *testing.T, server *socketman.Server, serverHandler func(io.ReadWrit
 
 	clientTasks := sync.WaitGroup{}
 	clientTasks.Add(1)
-	client.ConnectFunc(addr, func(c io.ReadWriter) {
+	err := client.ConnectFunc(addr, func(c io.ReadWriter) {
 		defer clientTasks.Done()
 		clientHandler(c)
 	})
+	if err != nil {
+		t.Errorf("client.ConnectFunc failed: %s", err)
+		clientTasks.Done()
+	}
 
 	clientTasks.Wait()
 	server.Close()
@@ -59,6 +63,9 @@ func testEchoServer(t *testing.T, server *socketman.Server, client *socketman.Cl
 			if err != nil {
 				t.Errorf("write failed: %s", err)
 			}
+			if w == 0 {
+				break // nothing to do anymore !
+			}
 			i += w
 		}
 
@@ -66,6 +73,9 @@ func testEchoServer(t *testing.T, server *socketman.Server, client *socketman.Cl
 			r, err := c.Read(out)
 			if err != nil {
 				t.Errorf("read failed: %s", err)
+			}
+			if r == 0 {
+				break // nothing to do anymore !
 			}
 			i += r
 		}
@@ -211,4 +221,25 @@ func TestListenAndServeTimeout(t *testing.T) {
 	}
 }
 
+func TestListenAndServe_with_tls(t *testing.T) {
+	cert, err := tls.X509KeyPair(internal.LocalhostCert, internal.LocalhostKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := &socketman.Server{
+		Config: socketman.Config{
+			TLSConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+	client := &socketman.Client{
+		Config: socketman.Config{
+			TLSConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	testEchoServer(t, server, client)
 }

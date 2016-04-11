@@ -1,6 +1,7 @@
 package socketman
 
 import (
+	"crypto/tls"
 	"io"
 	"net"
 )
@@ -17,9 +18,17 @@ type Client struct {
 //
 //The syntax of addr is "host:port", like "127.0.0.1:8080".
 //If host is omitted, as in ":8080".
-//See net.Dial for more details about address syntax.
+//See net.Dial and tls.Dial for more details about address syntax.
 func (c *Client) Connect(addr string, handler Handler) error {
-	con, err := net.Dial("tcp", addr)
+
+	var con net.Conn
+	var err error
+	if c.Config.TLSConfig != nil {
+		config := cloneTLSClientConfig(c.Config.TLSConfig)
+		con, err = tls.Dial("tcp", addr, config)
+	} else {
+		con, err = net.Dial("tcp", addr)
+	}
 	if err != nil {
 		return err
 	}

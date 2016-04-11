@@ -2,6 +2,7 @@
 package socketman
 
 import (
+	"crypto/tls"
 	"io"
 	"log"
 	"net"
@@ -39,6 +40,8 @@ type Server struct {
 //
 //ListenAndServe can be called multiple time on different addrs, one
 //Close call will close them all.
+//If configuration is changed between two ListenAndServe calls, already
+//running servers will just keep running with old config.
 //
 //ListenAndServe is thread safe.
 //
@@ -64,7 +67,13 @@ func (s *Server) ListenAndServe(addr string, handler Handler) error {
 	if err != nil {
 		return err
 	}
-	return s.Serve(listener, handler)
+
+	if s.Config.TLSConfig != nil {
+		config := cloneTLSConfig(s.Config.TLSConfig)
+		tlsListener := tls.NewListener(tcpKeepAliveListener{listener.(*net.TCPListener)}, config)
+		return s.Serve(tlsListener, handler)
+	}
+	return s.Serve(tcpKeepAliveListener{listener.(*net.TCPListener)}, handler)
 }
 
 // Serve accepts incoming connections on the Listener l, creating a
