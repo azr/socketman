@@ -31,7 +31,7 @@ type Server struct {
 	//ListenAndServe call.
 	cancelContext func()
 
-	// mu guards Context and cancelContext
+	// mu guards cancelContext func
 	mu sync.Mutex
 }
 
@@ -54,11 +54,11 @@ type Server struct {
 //See net.Dial for more details about address syntax.
 func (s *Server) ListenAndServe(addr string, handler Handler) error {
 
-	s.mu.Lock()
 	if s.Context == nil {
 		s.Context = context.Background()
 	}
 
+	s.mu.Lock()
 	if s.cancelContext == nil {
 		s.Context, s.cancelContext = context.WithCancel(s.Context)
 	}
@@ -151,6 +151,9 @@ func (s *Server) Close() {
 		s.cancelContext()
 	}
 	s.cancelContext = nil
-	s.Context = nil
 	s.mu.Unlock()
+
+	//Todo: ask context in ListenAndServe to avoid races ?
+	//or add a locked set func ?
+	s.Context = nil
 }
