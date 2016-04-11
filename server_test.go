@@ -118,9 +118,6 @@ func TestListenAndServe_echo(t *testing.T) {
 	testEchoClient(t, &socketman.Server{}, &socketman.Client{})
 }
 
-func TestListenAndServe_echo_client(t *testing.T) {
-}
-
 func TestListenAndServePanic(t *testing.T) {
 	addr := "127.0.0.1:1234"
 	s := socketman.Server{}
