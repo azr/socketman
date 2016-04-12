@@ -17,7 +17,7 @@ func NewAESPool(key []byte) (*AESPool, error) {
 	}, nil
 }
 
-//AESPool creates allocates aes stream writers and readers for you.
+//AESPool will create aes stream writers and readers for you.
 //TODO: recycle streams
 type AESPool struct {
 	block cipher.Block
