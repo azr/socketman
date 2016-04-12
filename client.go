@@ -32,12 +32,9 @@ func (c *Client) Connect(addr string, handler Handler) error {
 	if err != nil {
 		return err
 	}
-	conn := &conn{
-		netCon: con,
-		Config: c.Config,
-	}
+	conn := newconn(con, c.Config)
 	handler.ServeSocket(conn)
-	return conn.netCon.Close()
+	return conn.Close()
 }
 
 //ConnectFunc calls Connect

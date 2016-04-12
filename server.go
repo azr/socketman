@@ -124,12 +124,9 @@ func (s *Server) Serve(l net.Listener, handler Handler) error {
 					log.Printf("socketman: panic serving %v: %v\n%s", l.Addr(), err, buf)
 				}
 			}()
-			conn := &conn{
-				netCon: c,
-				Config: s.Config,
-			}
+			conn := newconn(c, s.Config)
 			handler.ServeSocket(conn)
-			err := c.Close()
+			err := conn.Close()
 			if err != nil {
 				log.Printf("socketman: connection close failed: %s", err)
 			}

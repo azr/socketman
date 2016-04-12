@@ -13,6 +13,8 @@ type Config struct {
 	// TLS config for secure Sockets
 	TLSConfig *tls.Config
 
+	CypherPool
+
 	// After a connection is opened and after each successful I/O call
 	// SetDeadline will be called upon that connection.
 	//

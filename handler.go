@@ -11,9 +11,36 @@ import (
 // it allows to bump I/O deadline
 // after each successfull read/write.
 // in client and/or server.
+// if config containts a CypherPool
+// one reader and one writer will be
+// instantiated with pool and will embed
+// the net.Conn. This allows encrypting
+// sent messages.
 type conn struct {
 	netCon net.Conn
+	w      io.Writer
+	r      io.Reader
+	io.Closer
 	Config
+}
+
+func newconn(netConn net.Conn, conf Config) *conn {
+	c := &conn{
+		netCon: netConn,
+		w:      netConn,
+		r:      netConn,
+		Closer: netConn,
+		Config: conf,
+	}
+	if conf.CypherPool != nil {
+		if conf.CypherPool.Reader != nil {
+			c.r = conf.CypherPool.Reader(netConn)
+		}
+		if conf.CypherPool.Writer != nil {
+			c.w = conf.CypherPool.Writer(netConn)
+		}
+	}
+	return c
 }
 
 func (c *conn) resetDeadline() {
@@ -24,7 +51,7 @@ func (c *conn) resetDeadline() {
 }
 
 func (c *conn) Write(b []byte) (n int, err error) {
-	n, err = c.netCon.Write(b)
+	n, err = c.w.Write(b)
 	if n > 0 && c.Config.IdleTimeout != 0 {
 		c.resetDeadline()
 	}
@@ -32,7 +59,7 @@ func (c *conn) Write(b []byte) (n int, err error) {
 }
 
 func (c *conn) Read(b []byte) (n int, err error) {
-	n, err = c.netCon.Read(b)
+	n, err = c.r.Read(b)
 	if n > 0 && c.Config.IdleTimeout != 0 {
 		c.resetDeadline()
 	}
