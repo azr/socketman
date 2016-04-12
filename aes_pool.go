@@ -18,6 +18,7 @@ func NewAESPool(key []byte) (*AESPool, error) {
 }
 
 //AESPool creates allocates aes stream writers and readers for you.
+//TODO: recycle streams
 type AESPool struct {
 	block cipher.Block
 }
@@ -41,3 +42,9 @@ func (p *AESPool) Writer(w io.Writer) *cipher.StreamWriter {
 	stream := cipher.NewOFB(p.block, iv[:])
 	return &cipher.StreamWriter{S: stream, W: w}
 }
+
+// func (p *AESPool) PutReader(r io.Reader) {
+//   if r is a *cipher.StreamReader ...
+
+// func (p *AESPool) PutWriter(r io.Writer) {
+//   if r is a *cipher.StreamWriter ...
