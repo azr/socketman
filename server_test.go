@@ -56,7 +56,7 @@ func TestListenAndServeTimeout(t *testing.T) {
 
 	var err error
 	test(t, server, echoHandler, client, func(c io.ReadWriter) {
-		time.Sleep(server.Config.IdleTimeout)
+		time.Sleep(server.Config.IdleTimeout + 1)
 		for i := 0; i < len(in) && err == nil; {
 			w := 0
 			w, err = io.WriteString(c, in)
