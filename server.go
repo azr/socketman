@@ -22,17 +22,17 @@ type Server struct {
 	Config
 
 	//Context represents the context of a server
-	//this context is cancelled and reset upon Close.
 	//
-	//When nil, ListenAndServe will just set it with a context.Background()
+	//it is used as an argument;
+	//if nil a new context will be created.
+	//it's used as a copy
 	Context context.Context
 
-	//cancelContext will be initialised on first
-	//ListenAndServe call.
-	cancelContext func()
+	ctx           context.Context // initialised on first ListenAndServe call.
+	cancelContext func()          // initialised on first ListenAndServe call.
 
-	// mu guards cancelContext func
-	mu sync.Mutex
+	// mu guards ctx and cancelContext
+	mu sync.RWMutex
 }
 
 //ListenAndServe listens on the TCP network address addr and
@@ -54,13 +54,13 @@ type Server struct {
 //See net.Dial for more details about address syntax.
 func (s *Server) ListenAndServe(addr string, handler Handler) error {
 
-	if s.Context == nil {
-		s.Context = context.Background()
-	}
-
 	s.mu.Lock()
-	if s.cancelContext == nil {
-		s.Context, s.cancelContext = context.WithCancel(s.Context)
+	if s.ctx == nil {
+		if s.Context != nil {
+			s.ctx, s.cancelContext = context.WithCancel(s.Context)
+		} else {
+			s.ctx, s.cancelContext = context.WithCancel(context.Background())
+		}
 	}
 	s.mu.Unlock()
 
@@ -85,7 +85,11 @@ func (s *Server) ListenAndServe(addr string, handler Handler) error {
 // Serve always returns a non-nil error.
 func (s *Server) Serve(l net.Listener, handler Handler) error {
 	go func() {
-		<-s.Context.Done()
+		s.mu.RLock()
+		done := s.ctx.Done()
+		s.mu.RUnlock()
+		<-done
+
 		l.Close()
 	}()
 	var tempDelay time.Duration // how long to sleep on accept failure
@@ -144,13 +148,11 @@ func (s *Server) ListenAndServeFunc(addr string, handler func(io.ReadWriter)) er
 // any ongoing connection will keep running.
 func (s *Server) Close() {
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.cancelContext != nil {
 		s.cancelContext()
 	}
 	s.cancelContext = nil
-	s.mu.Unlock()
-
-	//Todo: ask context in ListenAndServe to avoid races ?
-	//or add a locked set func ?
-	s.Context = nil
+	s.ctx = nil
 }
